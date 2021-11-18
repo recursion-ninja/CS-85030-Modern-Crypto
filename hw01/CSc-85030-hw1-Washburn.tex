@@ -29,6 +29,10 @@
 \newcommand{\HomeworkText}[1]{\textbf{``#1''}\\}
 \lstnewenvironment{HomeworkScala}{\lstset{language=Scala}}{}
 
+\setlength{\abovedisplayskip}{1pt}
+\setlength{\belowdisplayskip}{1pt}
+\setlength{\abovedisplayshortskip}{1pt}
+\setlength{\belowdisplayshortskip}{1pt}
 
 \title{CSc - 850 Modern Cryptography\\ Homework 1}
 \author{Alex Washburn}
@@ -52,12 +56,32 @@
 	\HomeworkText{
 		There is a perfectly secret encryption scheme that reveals 99\% of the key.
 	}
+
+	From \textbf{Theorem 2.10} on page 35 of the assigned textbook, \emph{``Introduction to Modern Cryptography, 2nd Edition''}, we know that any perfectly secret encryption scheme must have a key space that is at least as large as the message space. From \textbf{Definition 2.3} on page 29, we know that $\text{Pr}[M = m | C = c] = \text{Pr}[M = m]$.
+	
+	Let us fix $l$
 	
 
 	\subsection*{Part B}
 	\HomeworkText{
 		There is an encryption scheme that is not perfectly secure, yet no adversary can guess the key with probability better than $2^{\lambda}$, where $\lambda$ is the size of the key.
 	}
+
+    Let $\Pi = (Gen,Enc,Dec)$ be a perfectly secure encryption scheme with $\lambda = |\mathcal{K}| = |\mathcal{M}| = |\mathcal{C}|$.
+    Note that by \textbf{Theorem 2.11(1)} on page 36 (Shannon's Theorem), every key $k \in \mathcal{K}$ is chosen with probability $2^{-\lambda}$ by algorithm $Gen$.
+    Since we will use $\Pi$ in the constructive proof which follows, we should note that for all $\lambda \in \mathbb{Z}^{+}$ there exists at least one such encryption scheme satisfying $\Pi$, specifically the One Time Pad for messages of length $\lambda$.
+    
+    Choose some $n \in \mathbb{Z}^{+}$. We will utilize $\Pi$ and $n$ to construct an new encryption scheme $\Pi^{*} = (Gen,Enc^{*},Dec^{*})$ with $\mathcal{K}^{*} = \mathcal{K}$ and $\lambda + n = |\mathcal{M}^{*}| = |\mathcal{C}^{*}|$. 
+    
+    $Gen$ in the same in both $\Pi$ and $\Pi^{*}$. 
+    
+    $Enc^{*}(m) : \mathcal{M} \to \mathcal{C} = Enc(m_{[0,\lambda-1]}) \,||\, m_{[\lambda,n-1]}$; applying $Enc$ on the first $\lambda$ bits of $m$ and leaving the last $n$ bits of $m$ unchanged. 
+    
+    $Dec^{*}(c) : \mathcal{C} \to \mathcal{M} = Dec(c_{[0,\lambda-1]}) \,||\, c_{[\lambda,n-1]}$; applying $Dec$ on the first $\lambda$ bits of $c$ and leaving the last $n$ bits of $c$ unchanged.
+    
+    We can see, trivially that $\Pi^{*}$ is not a perfectly secret encryption scheme as it leaks the trailing $n$ bits of the message, violating the requirement of perfect indistinguishablity. However, $\forall\, k \in \mathcal{K}^{*}$ and all adversaries $\mathcal{A}$, the probability that the adversary's guessed key $K$ is equal to the actual key $k$ is $2^{-\lambda}$ because $\mathcal{K}^{*} = \mathcal{K}$. 
+    
+    Therefore we have shown that for all $\lambda \in \mathbb{Z}^{+}$ there exists a countably infinite number of encryption schemes which are not perfectly secure, yet no adversary can guess the key with probability better than $2^{-\lambda}$, where $\lambda$ is the size of the key.
 
 
 	\clearpage
@@ -100,80 +124,36 @@
 		$f(n) = n^{-\log n}$
 	}
 
-	Assume that $f$ is negligible. Then the following must hold for all polynomials $g$.
+	$f$ is negligible. The function $f$ is presented in the assigned textbook, \emph{``Introduction to Modern Cryptography, 2nd Edition''}, on page 49 as an example of a negligible function. However, instead of taking the book's assertion at face value without a proof, we will sketch out our own.\\
 	
-	\begin{equation}
-\begin{split}
-	  0 = & \lim\limits_{n\rightarrow\infty} g(n)*f(n) \\
-	    = & \lim\limits_{n\rightarrow\infty} \frac{g(n)}{n^{\log n}} \\
-\end{split}
-\end{equation}
-
-
-
-	Assume there exists a polynomial function $g$ such that it's inverse $g^{-1}$ decreases faster than $f$. Then there exists some $c$ such that for all $n > c$, $\pdv{}{n} \frac{f(n)}{g^{-1}(n)} > 1$.\\
-
-	We know that $f$ is a non-negative, decreasing function so the following must hold:
-
-	\begin{equation}\label{eq:diff}
-	  \forall n\quad 0 < f(n) - f(n^2)
-	\end{equation}
+	Choose a constant $c \in \mathbb{R}^{+}$. Let $N = 2^{c+1}$. Then for all $n \ge N$ the inequality $n^{-\log n} < n^{-c}$ will hold.\\
 	
-	Consider $m > c$.
-	
-	We know from our assumption that both $\pdv{}{n} \frac{f(m)}{g^{-1}(m)} > 1$ and $\pdv{}{n} \frac{f(m^2)}{g^{-1}(m^2)} > 1$. Combined with \ref{eq:diff}, we know:
-
-    \begin{equation}
-	\frac{\pdv{}{n}f(m) - \pdv{}{n}f(m^2)}{\pdv{}{n}g^{-1}(m) - \pdv{}{n}g^{-1}(m^2)} > 1
-	\end{equation}
-	
-	Given that $g$ being a polynomial function, we know that $\forall n,\; g^{-1}(n) - g^{-1}(n^2) = poly(n)$\\
-	
-	We have what we need, let's proceed!
-	
-%	$$ 1 < \pdv{}{n} \frac{f(n)}{g^{-1}(n)} < \pdv{}{n} \frac{f(n+k)}{g^{-1}(n+k)} $$\
-
-$$ \frac{\pdv{}{n} \left( f(m) - f(m^2) \right)}{ \pdv{}{n} \left( g^{-1}(m) - g^{-1}(m^2) \right) } > 1$$
-
 	\begin{equation}
 	\begin{split}
-	\frac{\pdv{}{n}f(m) - \pdv{}{n}f(m^2)}{\pdv{}{n}g^{-1}(m) - \pdv{}{n}g^{-1}(m^2)} & = \frac{\pdv{}{n} \left( f(m) - f(m^2) \right)}{ \pdv{}{n} \left( g^{-1}(m) - g^{-1}(m^2) \right) } \\
-	& = \frac{\pdv{}{n} \left( m^{-\log m} - m^{-2\log(m^2)} \right)}{ \pdv{}{n} \left( poly(m) \right) } \\
-	n^{-2\log(n^2)} - n^{-\log n}  & < -1 * poly(n)\\
+	  	n^{-\log n} & < n^{-c} \\
+	  	(2^{c+1})^{-\log(2^{c+1})} & < (2^{c+1})^{-c} \\
+	    (2^{c+1})^{-c - 1} & < (2^{c+1})^{-c} \\
 	\end{split}
 	\end{equation}
-
-	\begin{equation}
-	\begin{split}
-	1 < \pdv{}{n} \frac{f(n)}{g^{-1}(n)} & < \pdv{}{n} \frac{f(n+k)}{g^{-1}(n+k)} \\
-	1 < \frac{ n^{-1} * (-2 \log n - 1)}{n^{\log(n) - 1} g^{-1}(n)} & < \pdv{}{n} \frac{f(n+k)}{g^{-1}(n+k)} \\
-	\end{split}
-	\end{equation}
-
-	\begin{equation}
-	\begin{split}
-	1 & \le	\pdv{}{n} \frac{f(n)}{g^{-1}(n)} \\
-	  & =   -1 * \frac{n^{-\log n} * \pdv{}{n} g^{-1}(n)}{g^{-1}(n) * g^{-1}(n)} - \frac{2\log n * n^{-\log n - 1}}{g^{-1}(n)} \\
-	  & = \frac{-1}{g^{-1}(n)} * \left[ \frac{\pdv{}{n} g^{-1}(n)}{n^{\log n} * g^{-1}(n)} + \frac{2\log n}{n^{\log n + 1}} \right] \\
-	  & \le \pdv{}{n} \frac{f(n+k)}{g^{-1}(n+k)} \\
-	  & = \frac{-1}{g^{-1}(n+k)} * \left[ \frac{\pdv{}{n} g^{-1}(n+k)}{(n+k)^{\log(n+k)} * g^{-1}(n+k)} + \frac{2\log(n+k)}{(n+k)^{\log(n+k) + 1}} \right]
-	\end{split}
-	\end{equation}
-%		& =   \pdv{}{n} \frac{n^{-\log n}}{g^{-1}(n)} \\
-%		& =   -1 * \frac{n^{-\log n} * \pdv{}{n} g^{-1}(n)}{g^{-1}(n) * g^{-1}(n)} - \frac{2\log n * n^{-\log n - 1}}{g^{-1}(n)} \\
-%		& =  \frac{-1}{g^{-1}(n)} * \left[ \frac{\pdv{}{n} g^{-1}(n)}{n^{\log n} * g^{-1}(n)} + \frac{2\log n}{n^{\log n + 1}} \right] \\
-
-
-
-We can see that the inverse of $g$ decreases faster than $f$ as the derivative of their ratio is greater than or equal to $1$.
 
 
 	\subsection*{Part D}
 	\HomeworkText{
-		$f(n) = poly(n) \times negl(n)$
+		$f(n) = poly(n) \cdot negl(n)$
 	}
 
-
+	$f$ is negligible. The function $f$ is defined as neglible by \textbf{Proposition 3.6(2)} presented in the assigned textbook, \emph{``Introduction to Modern Cryptography, 2nd Edition''}, on page 49. Let's sketch a a proof again.\\
+	
+	Assume $f(n) = g(n) \cdot negl(n)$, where $g(n)$ is some positive polynomial function, is not negligible. Note that by this definition neither $g(n)$ nor $g^{-1}(n)$ can be negligible. We quickly arrive at the following contradiction:
+	
+	\begin{equation}
+	\begin{split}
+	f(n) & = g(n) \cdot negl(n) \\
+	g^{-1} \cdot f(n) & = g^{-1} \cdot g(n) \cdot negl(n) \\
+	g^{-1} \cdot f(n) & = negl(n) \\
+	\end{split}
+	\end{equation}
+	
 	\clearpage
 	\section*{Question 3}
 	\HomeworkText{
