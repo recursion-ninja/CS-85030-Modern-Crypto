@@ -1,0 +1,201 @@
+%This is my super simple Real Analysis Homework template
+
+\documentclass{article}
+\usepackage{geometry}
+\geometry{
+	a4paper,
+%	total={170mm,257mm},
+	left=20mm,
+	right=20mm,
+	top=20mm,
+}
+\usepackage[utf8]{inputenc}
+\usepackage[english]{babel}
+\usepackage{mathrsfs} % https://www.ctan.org/pkg/mathrsfs
+\usepackage{amsmath}
+\usepackage[]{amsthm} %lets us use \begin{proof}
+\usepackage[]{amssymb} %gives us the character \varnothing
+\usepackage{listings}
+\usepackage{enumitem}
+\usepackage{censor}
+\usepackage{comment}
+\usepackage{physics}
+
+\lstnewenvironment{scala}{\lstset{language=Scala}}{}
+
+%%% REDACT the problem statements that the grader doesn't like!
+%\newcommand{\HomeworkText}[1]{\xblackout{``#1``}\\}
+%\excludecomment{HomeworkScala}
+\newcommand{\HomeworkText}[1]{\textbf{``#1''}\\}
+\lstnewenvironment{HomeworkScala}{\lstset{language=Scala}}{}
+
+
+\title{CSc - 850 Modern Cryptography\\ Homework 1}
+\author{Alex Washburn}
+\date\today
+
+\begin{document}
+	\newgeometry{left=4.5cm,right=4.5cm}
+
+	\maketitle
+	\vspace*{4cm}
+
+	\restoregeometry
+	
+	\clearpage
+	\section*{Question 1}
+	\HomeworkText{
+		Prove or disprove the following:
+	}
+
+	\subsection*{Part A}
+	\HomeworkText{
+		There is a perfectly secret encryption scheme that reveals 99\% of the key.
+	}
+	
+
+	\subsection*{Part B}
+	\HomeworkText{
+		There is an encryption scheme that is not perfectly secure, yet no adversary can guess the key with probability better than $2^{\lambda}$, where $\lambda$ is the size of the key.
+	}
+
+
+	\clearpage
+	\section*{Question 2}
+	\HomeworkText{
+		State whether they each function is negligible or not and give a brief explanation.
+	}
+
+	\subsection*{Part A}
+	\HomeworkText{
+		$f(n) = n^{-100}$
+	}
+
+	$f$ is \emph{not} negligible. Consider the polynomial function $g(n) = n^{102}$
+	
+	\begin{equation}
+	\begin{split}
+	\pdv{}{n} \frac{f(n)}{g^{-1}(n)} & = \pdv{}{n} \frac{n^{-100}}{n^{-102}} \\
+	  & = \pdv{}{n} n^2 \\
+	  & = 2n \\
+	  & \ge 1
+	\end{split}
+	\end{equation}
+	
+	We can see that the inverse of $g$ decreases faster than $f$ as the derivative of their ratio is greater than or equal to $1$.
+
+	\subsection*{Part B}
+	\HomeworkText{
+		$f(n) = 2^{-100 \log n}$
+	}
+
+	$f$ is \emph{not} negligible. Consider the following equality:
+	
+	$$ f(n) = 2^{-100 \log n} = n^{-100}$$
+	
+	We can see above from \textbf{Part A} that $f$ is not negligible.
+	
+	\subsection*{Part C}
+	\HomeworkText{
+		$f(n) = n^{-\log n}$
+	}
+
+	Assume that $f$ is negligible. Then the following must hold for all polynomials $g$.
+	
+	\begin{equation}
+\begin{split}
+	  0 = & \lim\limits_{n\rightarrow\infty} g(n)*f(n) \\
+	    = & \lim\limits_{n\rightarrow\infty} \frac{g(n)}{n^{\log n}} \\
+\end{split}
+\end{equation}
+
+
+
+	Assume there exists a polynomial function $g$ such that it's inverse $g^{-1}$ decreases faster than $f$. Then there exists some $c$ such that for all $n > c$, $\pdv{}{n} \frac{f(n)}{g^{-1}(n)} > 1$.\\
+
+	We know that $f$ is a non-negative, decreasing function so the following must hold:
+
+	\begin{equation}\label{eq:diff}
+	  \forall n\quad 0 < f(n) - f(n^2)
+	\end{equation}
+	
+	Consider $m > c$.
+	
+	We know from our assumption that both $\pdv{}{n} \frac{f(m)}{g^{-1}(m)} > 1$ and $\pdv{}{n} \frac{f(m^2)}{g^{-1}(m^2)} > 1$. Combined with \ref{eq:diff}, we know:
+
+    \begin{equation}
+	\frac{\pdv{}{n}f(m) - \pdv{}{n}f(m^2)}{\pdv{}{n}g^{-1}(m) - \pdv{}{n}g^{-1}(m^2)} > 1
+	\end{equation}
+	
+	Given that $g$ being a polynomial function, we know that $\forall n,\; g^{-1}(n) - g^{-1}(n^2) = poly(n)$\\
+	
+	We have what we need, let's proceed!
+	
+%	$$ 1 < \pdv{}{n} \frac{f(n)}{g^{-1}(n)} < \pdv{}{n} \frac{f(n+k)}{g^{-1}(n+k)} $$\
+
+$$ \frac{\pdv{}{n} \left( f(m) - f(m^2) \right)}{ \pdv{}{n} \left( g^{-1}(m) - g^{-1}(m^2) \right) } > 1$$
+
+	\begin{equation}
+	\begin{split}
+	\frac{\pdv{}{n}f(m) - \pdv{}{n}f(m^2)}{\pdv{}{n}g^{-1}(m) - \pdv{}{n}g^{-1}(m^2)} & = \frac{\pdv{}{n} \left( f(m) - f(m^2) \right)}{ \pdv{}{n} \left( g^{-1}(m) - g^{-1}(m^2) \right) } \\
+	& = \frac{\pdv{}{n} \left( m^{-\log m} - m^{-2\log(m^2)} \right)}{ \pdv{}{n} \left( poly(m) \right) } \\
+	n^{-2\log(n^2)} - n^{-\log n}  & < -1 * poly(n)\\
+	\end{split}
+	\end{equation}
+
+	\begin{equation}
+	\begin{split}
+	1 < \pdv{}{n} \frac{f(n)}{g^{-1}(n)} & < \pdv{}{n} \frac{f(n+k)}{g^{-1}(n+k)} \\
+	1 < \frac{ n^{-1} * (-2 \log n - 1)}{n^{\log(n) - 1} g^{-1}(n)} & < \pdv{}{n} \frac{f(n+k)}{g^{-1}(n+k)} \\
+	\end{split}
+	\end{equation}
+
+	\begin{equation}
+	\begin{split}
+	1 & \le	\pdv{}{n} \frac{f(n)}{g^{-1}(n)} \\
+	  & =   -1 * \frac{n^{-\log n} * \pdv{}{n} g^{-1}(n)}{g^{-1}(n) * g^{-1}(n)} - \frac{2\log n * n^{-\log n - 1}}{g^{-1}(n)} \\
+	  & = \frac{-1}{g^{-1}(n)} * \left[ \frac{\pdv{}{n} g^{-1}(n)}{n^{\log n} * g^{-1}(n)} + \frac{2\log n}{n^{\log n + 1}} \right] \\
+	  & \le \pdv{}{n} \frac{f(n+k)}{g^{-1}(n+k)} \\
+	  & = \frac{-1}{g^{-1}(n+k)} * \left[ \frac{\pdv{}{n} g^{-1}(n+k)}{(n+k)^{\log(n+k)} * g^{-1}(n+k)} + \frac{2\log(n+k)}{(n+k)^{\log(n+k) + 1}} \right]
+	\end{split}
+	\end{equation}
+%		& =   \pdv{}{n} \frac{n^{-\log n}}{g^{-1}(n)} \\
+%		& =   -1 * \frac{n^{-\log n} * \pdv{}{n} g^{-1}(n)}{g^{-1}(n) * g^{-1}(n)} - \frac{2\log n * n^{-\log n - 1}}{g^{-1}(n)} \\
+%		& =  \frac{-1}{g^{-1}(n)} * \left[ \frac{\pdv{}{n} g^{-1}(n)}{n^{\log n} * g^{-1}(n)} + \frac{2\log n}{n^{\log n + 1}} \right] \\
+
+
+
+We can see that the inverse of $g$ decreases faster than $f$ as the derivative of their ratio is greater than or equal to $1$.
+
+
+	\subsection*{Part D}
+	\HomeworkText{
+		$f(n) = poly(n) \times negl(n)$
+	}
+
+
+	\clearpage
+	\section*{Question 3}
+	\HomeworkText{
+		Show that $A$ returns the correct bit $b$ with probability $\frac{1}{2} + \frac{\epsilon}{2}$ if and only if $A$ can distinguish the distributions $D_0$, $D_1$ with probability $\epsilon$.
+	}
+	
+
+	\clearpage
+	\section*{Question 4}
+	\HomeworkText{
+		Let $p$ be an odd prime.
+	}
+	\subsection*{Part A}
+	\HomeworkText{
+		Find an efficient algorithm to check if a given $a \in \mathbb{Z}^{*}_{p}$ is a quadratic residue.
+	}
+
+
+	\subsection*{Part B}
+	\HomeworkText{
+		Describe an efficient algorithm to check if a given $g \in \mathbb{Z}^{*}_{p}$ is a generator. Assume that the algorithm is also given a factorization of $p - 1$.
+	}
+
+
+\end{document}
