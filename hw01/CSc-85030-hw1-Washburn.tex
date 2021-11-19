@@ -34,6 +34,8 @@
 \setlength{\abovedisplayshortskip}{1pt}
 \setlength{\belowdisplayshortskip}{1pt}
 
+\newcommand*{\defeq}{\stackrel{\text{def}}{=}}
+
 \title{CSc - 850 Modern Cryptography\\ Homework 1}
 \author{Alex Washburn}
 \date\today
@@ -57,9 +59,66 @@
 		There is a perfectly secret encryption scheme that reveals 99\% of the key.
 	}
 
-	From \textbf{Theorem 2.10} on page 35 of the assigned textbook, \emph{``Introduction to Modern Cryptography, 2nd Edition''}, we know that any perfectly secret encryption scheme must have a key space that is at least as large as the message space. From \textbf{Definition 2.3} on page 29, we know that $\text{Pr}[M = m | C = c] = \text{Pr}[M = m]$.
-	
-	Let us fix $l$
+    $$Pr[M = m | C = c] = Pr[M = m]$$
+    $$Pr[Enc K (m) = c] = Pr[Enc K (m') = c]$$
+
+    Let $\Pi = (Gen,Enc,Dec)$ be a perfectly secure encryption scheme with $2^\ell = |\mathcal{K}| = |\mathcal{M}| = |\mathcal{C}|$.
+    Note that by \textbf{Theorem 2.11(1)} (Shannon's Theorem) on page 36 of the assigned textbook, \emph{``Introduction to Modern Cryptography, 2nd Edition''}, every key $k \in \mathcal{K}$ is chosen with probability $2^{-\ell}$ by algorithm $Gen$.
+    Since we will use $\Pi$ in the constructive proof which follows, we should note that for all $\ell \in \mathbb{Z}^{+}$ there exists at least one such encryption scheme satisfying $\Pi$, specifically the One Time Pad for messages of length $\ell$.
+    Now we will prove the existence of the hypothesized encryption scheme.\\
+    
+    Let $\Pi^{*} = (Gen^{*},Enc^{*},Dec^{*})$ be an encryption scheme with $100 \cdot2^\ell = |\mathcal{K}^{*}|$ and $\mathcal{M}^{*} = \mathcal{M}$ and $\mathcal{C}^{*} = \mathcal{C}$.
+        
+    Let $f : \mathcal{K}^{*} \to \mathcal{K}$ with the following properties:
+    \begin{enumerate}
+
+    	\item $f$ is a surjective function where each element in $\mathcal{K}$ has \emph{exactly} $100$ elements in $\mathcal{K}^{*}$ mapped to it by $f$.
+
+    	\item For each element $k \in \mathcal{K}$, and for all $k^{*} \in \mathcal{K}^{*}$ such that $f(k^{*}) = k$, the correlation $corr(k,k^*)$ is $0$.
+    	 
+    \end{enumerate}
+    
+    Let $Gen^{*}$ sample all $k^{*} \in \mathcal{K}^{*}$ with probability $10^{-2}\cdot2^{-\ell}$.
+    
+    Let $Enc^{*}_{k^*}(m) = Enc_{f(k^*)}(m)$
+    
+    Let $Dec^{*}_{k^*}(c) = Dec_{f(k^*)}(c)$
+   
+    Let $\Psi : \mathcal{C} \to \mathcal{K}^{*}$ with the following properties:
+    
+    \begin{enumerate}
+    
+    	\item $\forall\, k^{*} \in \mathcal{K}^{*}, \forall\, m \in \mathcal{M} \quad \Psi(Enc^{*}_{k^*}(m))$ implies $\Psi(c) = k'$ and $k^*$ have 99\% bits in common.
+    	
+    	\item $\forall\, k^{*}_0, k^{*}_1 \in \mathcal{K}^{*}, \forall\, m \in \mathcal{M} \;\;$ the correlation $corr(\Psi(Enc^{*}_{k^*_0}(m)),\; \Psi(Enc^{*}_{k^*_1}(m)))$ is $0$.
+    	
+    	\item $\forall\, k^{*} \in \mathcal{K}^{*}, \forall\, c \in \mathcal{C} \;\;$ the correlation $corr(\Psi(c),k^{*})$ is $0$.
+    	
+    	\item The indices of the bits exposed by $\Psi$ are not known.
+   
+    \end{enumerate}
+
+	Let $\mathcal{K}^*(k^*) \defeq \left\{ x  \;|\; x \in \mathcal{K^*} \text{ where } x \text{ and } k^* \text{ have 99\% bits in common} \right\}$
+    
+    Note that $\forall k^* \in \mathcal{K}^*,\; |\mathcal{K}^*(k*)| = 100$. This follows directly from the first property of $f$'s definition.
+    
+    Note that $Gen^* \xrightarrow{f} \mathcal{K}$ samples all $k \in \mathcal{K}$ with probability $\cdot2^{-\ell}$. Consequently,\\ $\forall (k^*,m,c) \in \mathcal{K^*} \cross \mathcal{M} \cross \mathcal{C}\;\; \text{Pr}[Enc^*_{k*}(m) = c] = 2^{-\ell}$. This follows directly from the definitions of $f$'s and $Enc^*$.\\
+    
+    We now have all the requisite components for our proof:\\
+    
+    $\forall m,m' \in \mathcal{M},$ and $\forall c \in \mathcal{C}$.
+    
+   	\begin{equation}
+    \begin{split}
+    	\text{Pr}[Enc^*_{k*}(m) = c \;|\; k' = \Psi(c)]
+    & = \frac{|\mathcal{K}'(k')|}{|\mathcal{K}^*|} \\
+    & = 100 * 100^{-1}\cdot2^{-\ell} \\
+    & = 2^{-\ell} \\
+    & = \text{Pr}[Enc^*_{k*}(m') = c] \\
+    \end{split}
+    \end{equation}
+    
+    Therefore $\Pi^*$ is a perfectly secret encryption scheme by \textbf{Lemma 2.4} on page 30.
 	
 
 	\subsection*{Part B}
@@ -70,18 +129,20 @@
     Let $\Pi = (Gen,Enc,Dec)$ be a perfectly secure encryption scheme with $\lambda = |\mathcal{K}| = |\mathcal{M}| = |\mathcal{C}|$.
     Note that by \textbf{Theorem 2.11(1)} on page 36 (Shannon's Theorem), every key $k \in \mathcal{K}$ is chosen with probability $2^{-\lambda}$ by algorithm $Gen$.
     Since we will use $\Pi$ in the constructive proof which follows, we should note that for all $\lambda \in \mathbb{Z}^{+}$ there exists at least one such encryption scheme satisfying $\Pi$, specifically the One Time Pad for messages of length $\lambda$.
+    Now we will prove the existence of the hypothesized encryption scheme.\\ 
     
-    Choose some $n \in \mathbb{Z}^{+}$. We will utilize $\Pi$ and $n$ to construct an new encryption scheme $\Pi^{*} = (Gen,Enc^{*},Dec^{*})$ with $\mathcal{K}^{*} = \mathcal{K}$ and $\lambda + n = |\mathcal{M}^{*}| = |\mathcal{C}^{*}|$. 
+    Choose some $n \in \mathbb{Z}^{+}$.
     
-    $Gen$ in the same in both $\Pi$ and $\Pi^{*}$. 
+    We will utilize  $n$ and $\Pi$ to construct $\Pi^{*} = (Gen,Enc^{*},Dec^{*})$ with $\mathcal{K}^{*} = \mathcal{K}$ and $\lambda + n = |\mathcal{M}^{*}| = |\mathcal{C}^{*}|$. 
+    
+    $Gen$ is the same in both $\Pi$ and $\Pi^{*}$. 
     
     $Enc^{*}(m) : \mathcal{M} \to \mathcal{C} = Enc(m_{[0,\lambda-1]}) \,||\, m_{[\lambda,n-1]}$; applying $Enc$ on the first $\lambda$ bits of $m$ and leaving the last $n$ bits of $m$ unchanged. 
     
-    $Dec^{*}(c) : \mathcal{C} \to \mathcal{M} = Dec(c_{[0,\lambda-1]}) \,||\, c_{[\lambda,n-1]}$; applying $Dec$ on the first $\lambda$ bits of $c$ and leaving the last $n$ bits of $c$ unchanged.
+    $Dec^{*}(c) : \mathcal{C} \to \mathcal{M} = Dec(c_{[0,\lambda-1]}) \,||\, c_{[\lambda,n-1]}$; applying $Dec$ on the first $\lambda$ bits of $c$ and leaving the last $n$ bits of $c$ unchanged.\\
     
-    We can see, trivially that $\Pi^{*}$ is not a perfectly secret encryption scheme as it leaks the trailing $n$ bits of the message, violating the requirement of perfect indistinguishablity. However, $\forall\, k \in \mathcal{K}^{*}$ and all adversaries $\mathcal{A}$, the probability that the adversary's guessed key $K$ is equal to the actual key $k$ is $2^{-\lambda}$ because $\mathcal{K}^{*} = \mathcal{K}$. 
-    
-    Therefore we have shown that for all $\lambda \in \mathbb{Z}^{+}$ there exists a countably infinite number of encryption schemes which are not perfectly secure, yet no adversary can guess the key with probability better than $2^{-\lambda}$, where $\lambda$ is the size of the key.
+    We can see, trivially that $\Pi^{*}$ is not a perfectly secret encryption scheme as it leaks the trailing $n$ bits of the message, violating the requirement of perfect indistinguishablity. However, $\forall\, k \in \mathcal{K}^{*}$ and all adversaries $\mathcal{A}$, the adversary's guessed key $K$ is equal to the actual key $k$ with probability $2^{-\lambda}$ because $\mathcal{K}^{*} = \mathcal{K}$.    
+    Therefore we have a constructive proof that for all $\lambda \in \mathbb{Z}^{+}$ there exists a countably infinite number of encryption schemes which are not perfectly secure, yet no adversary can guess the key with probability better than $2^{-\lambda}$, where $\lambda$ is the size of the key.
 
 
 	\clearpage
@@ -90,10 +151,10 @@
 		State whether they each function is negligible or not and give a brief explanation.
 	}
 
-	\subsection*{Part A}
+	\subsection*{Part A
 	\HomeworkText{
 		$f(n) = n^{-100}$
-	}
+	}}
 
 	$f$ is \emph{not} negligible. Consider the polynomial function $g(n) = n^{102}$
 	
@@ -108,10 +169,10 @@
 	
 	We can see that the inverse of $g$ decreases faster than $f$ as the derivative of their ratio is greater than or equal to $1$.
 
-	\subsection*{Part B}
+	\subsection*{Part B
 	\HomeworkText{
 		$f(n) = 2^{-100 \log n}$
-	}
+	}}
 
 	$f$ is \emph{not} negligible. Consider the following equality:
 	
@@ -119,10 +180,10 @@
 	
 	We can see above from \textbf{Part A} that $f$ is not negligible.
 	
-	\subsection*{Part C}
+	\subsection*{Part C
 	\HomeworkText{
 		$f(n) = n^{-\log n}$
-	}
+	}}
 
 	$f$ is negligible. The function $f$ is presented in the assigned textbook, \emph{``Introduction to Modern Cryptography, 2nd Edition''}, on page 49 as an example of a negligible function. However, instead of taking the book's assertion at face value without a proof, we will sketch out our own.\\
 	
@@ -137,10 +198,10 @@
 	\end{equation}
 
 
-	\subsection*{Part D}
+	\subsection*{Part D
 	\HomeworkText{
 		$f(n) = poly(n) \cdot negl(n)$
-	}
+	}}
 
 	$f$ is negligible. The function $f$ is defined as neglible by \textbf{Proposition 3.6(2)} presented in the assigned textbook, \emph{``Introduction to Modern Cryptography, 2nd Edition''}, on page 49. Let's sketch a a proof again.\\
 	
