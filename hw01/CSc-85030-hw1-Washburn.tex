@@ -20,6 +20,8 @@
 \usepackage{censor}
 \usepackage{comment}
 \usepackage{physics}
+\usepackage{algorithm}
+\usepackage[noend]{algpseudocode}
 
 \lstnewenvironment{scala}{\lstset{language=Scala}}{}
 
@@ -222,6 +224,22 @@
 	\HomeworkText{
 		Show that $A$ returns the correct bit $b$ with probability $\frac{1}{2} + \frac{\epsilon}{2}$ if and only if $A$ can distinguish the distributions $D_0$, $D_1$ with probability $\epsilon$.
 	}
+
+    $$\underset{ x \gets D_0}{\Pr}[A(x) = 1] \;- \underset{ x \gets D_1}{\Pr}[A(x) = 1] = \epsilon \iff \underset{\substack{ b \gets \{0,1\}\\x \gets D_b}}{\Pr}[ A(x) = b] = \frac{1}{2} + \frac{\epsilon}{2}$$
+    
+    \begin{equation}
+    \begin{split}
+    \underset{\substack{ b \gets \{0,1\}\\x \gets D_b}}{\Pr}[ A(x) = b] = \frac{1}{2} + \frac{\epsilon}{2} & \equiv \underset{\substack{ b \gets \{0,1\}\\x \gets D_b}}{\Pr}[ A(x) = b] - \frac{1}{2} = \frac{\epsilon}{2}\\
+    & \equiv \frac{1}{2}\underset{ x \gets D_0}{\Pr}[A(x) = 0 \;|\; b = 0] \; + \frac{1}{2}\underset{ x \gets D_1}{\Pr}[A(x) = 1 \;|\; b = 1] - \frac{1}{2} = \frac{\epsilon}{2} \\
+    & \equiv \underset{ x \gets D_0}{\Pr}[A(x) = 0 \;|\; b = 0] \; + \underset{ x \gets D_1}{\Pr}[A(x) = 1 \;|\; b = 1] - 1 = \epsilon \\
+    & \equiv \frac{\underset{ x \gets D_0}{\Pr}[b = 0 \;|\; A(x) = 0] \underset{ x \gets D_0}{\Pr}[A(x) = 0]}{\Pr[b = 0]} + \frac{\underset{ x \gets D_1}{\Pr}[b = 1 \;|\; A(x) = 1] \underset{ x \gets D_1}{\Pr}[A(x) = 1]}{\Pr[b = 1]} - \frac{1}{2} = \frac{\epsilon}{2} \\
+    & \equiv \frac{2^{-1}(1 - \underset{ x \gets D_0}{\Pr}[A(x) = 1])}{2^{-1}} + \frac{2^{-1}\underset{ x \gets D_1}{\Pr}[A(x) = 1]}{2^{-1}} - 1 = \epsilon \\
+    & \equiv 1 - \underset{ x \gets D_0}{\Pr}[A(x) = 1] + \underset{ x \gets D_1}{\Pr}[A(x) = 1] - 1 = \epsilon \\
+    & \equiv \underset{ x \gets D_1}{\Pr}[A(x) = 1] - \underset{ x \gets D_0}{\Pr}[A(x) = 1] = \epsilon \\
+    \end{split}
+    \end{equation}
+    
+    Well, I arrived at \emph{almost} the desired the desired goal. However, the subtrahend and minuend are swapped. I'd argue that there should be absolute value bars around the difference of probabilities when distinguishing between the distributions. If that argument is sound, the result of the equivalencies above with the swapped subtrahend and minuend is identical to the desired difference of probabilities.
 	
 
 	\clearpage
@@ -263,5 +281,37 @@
 		Describe an efficient algorithm to check if a given $g \in \mathbb{Z}^{*}_{p}$ is a generator. Assume that the algorithm is also given a factorization of $p - 1$.
 	}
 
+	Let $g \in \mathbb{Z}^{*}_{p}$ be the candidate generator of $\mathbb{Z}^{*}_{p}$.
+
+	Let $\mathcal{F} = \left\{f_0, f_1, ... , f_{n-1}\right\}$ be the $n$ factors of $p-1$.
+	
+	Let $h(f)$ be the product of $\mathcal{F} \setminus \left\{ f \right\}$.\\
+	
+	Note that if $g^{h(f)} = 1 \mod p$ then $g$ has order $h(f) < p - 1$.\\
+
+    Now we can assert that $g$ is a generator of $\mathbb{Z}^{*}_{p} \iff \forall\, f \in \mathcal{F},\; g^{h(f)\cdot f} \equiv 1 \mod p\;$ and $\;g^{h(f)} \not \equiv 1 \mod p$. 
+    
+        \begin{algorithm}
+    	\label{Alg:decide-gen}
+    	\caption{Decide if $g$ is a generator of $\mathbb{Z}^{*}_{p}$ given the factorization $\mathcal{F}$ of $p - 1$.}
+    	\label{Alg:deriveAlignment}
+    	\begin{algorithmic}[1]
+    		\Function{DecideGenerator}{$g,\, \mathcal{F}$}
+    		\State $q \gets \prod_{\mathcal{F}}$
+    		\State $p \gets q + 1$
+    		\State $h(f) \gets q / f$
+    		\ForAll{$f \in \mathcal{F}$}
+    		\If{$g^{h(f)} \equiv 1 \mod p$}
+    		  \State \Return \texttt{False}
+    		\EndIf
+    		\EndFor
+    		
+    		\State \Return \texttt{True}
+
+    		\EndFunction
+    	\end{algorithmic}
+    \end{algorithm}
+
+	Algorithm \ref{Alg:decide-gen} decides if $g$ is a generator of $\mathbb{Z}^{*}_{p}$ given the factorization $\mathcal{F}$ of $p - 1$ in $\mathcal{O}(p*|\mathcal{F}|)$ time.
 
 \end{document}
