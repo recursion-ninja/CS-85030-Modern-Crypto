@@ -1,0 +1,291 @@
+\documentclass[12pt,twocolumn]{article}
+
+\pagestyle{plain}
+%%%%%%%%%%  EXACT 1in MARGINS  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\setlength{\textwidth     }{6.5in}  %%                               %%
+\setlength{\oddsidemargin }{0in}    %%  It is recommended that you   %%
+\setlength{\evensidemargin}{0in}    %%  not change these parameters  %%
+\setlength{\textheight    }{8.5in}  %%                               %%
+\setlength{\topmargin     }{0in}    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\setlength{\headheight    }{0in}
+\setlength{\headsep       }{.25in}
+\setlength{\footskip      }{.5in}       
+
+
+\renewcommand{\thesection}{\Roman{section}} 
+
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{hyperref}
+\usepackage{natbib}
+\usepackage{sectsty}
+\usepackage{titlesec}
+
+\pagenumbering{gobble}
+
+\sectionfont{\fontsize{13}{14}\selectfont\centering}
+%\sectionfont{\centering}
+\titlespacing*{\section}{1pt}{1ex}{1ex}
+\titlespacing*{\subsection}{1pt}{2ex}{0ex}
+
+%\newcommand{\required}[1]{\section*{\hfil #1\hfil}}
+%\renewcommand{\refname}{\hfil References Cited\hfil}
+\bibliographystyle{plain}
+
+\begin{document}
+	
+	\author{}
+	\date{}
+	\title{\vspace{-8ex} \textbf{Survey of Secure Group Messaging}\\ \Large Alex Washburn\vspace{-7ex}}
+	%\setlength{\droptitle}{-10em}   % This is your set screw
+	\thispagestyle{plain}
+
+	\twocolumn[
+	\begin{@twocolumnfalse}
+		
+		\maketitle
+		
+		\begin{abstract}
+		  I introduce the features of Secure Group Messaging, the security guarantees of Message Layer Security, and the TreeKEM protocol designed to satisfy these guarantees and features.
+		  Next, I explore the open problems for secure group messaging generally and the specific shortcomings of TreeKEM.
+		  Finally, I present the recent developments of TreeKEM and their implication for usable Secure Group Messaging.
+		\end{abstract}
+	
+	\end{@twocolumnfalse}
+	]
+	
+	\section*{Introduction}
+	
+	In an ideal world, secure communication channels are available and accessible to members of our society.
+	Secure communication facilitates open and confident communication between parties without fear of impersonation or message interception by malicious actors.
+	Not only is secure communication important for individual use, but it is the cornerstone of commercial confidence in our progressively digitized economy.
+	Without secure communication channels, online retail, banking, and collaboration would not exist as we know it today.
+	The field of cryptography is the practice and study of techniques which lay the mathematical foundations for the secure communication we all benefit from daily.
+	
+	In the last two decades, the field of cryptography has made great progress in improving accessibility and usability of strong encryption.
+	Secure, accessible, and intuitive communication between two parties is ubiquitous.
+	Such secure bidirectional communication channels are known as Secure Messaging (SM).
+	Secure Messaging is supported by a variety of services including ChatSecure, CryptoCat, Cyber Dust, Cyphr, Facebook Messenger, G Data Secure Chat, Gajim, GNOME Fractal, Google Allo, Haven, Kakao Talk, Line, Element, Signal, Silence, Silent Phone, Skype, Telegram, Viber, WhatsApp, and Wickr, Wire.
+	However, generalizing the security guarantees of SM to communication with more than two parties is still an area of active research.
+	This generalization to multi-party communication is known as Secure Group Messaging (SGM).
+	
+	Message Layer Security (MLS) \cite{Omara2020} is a framework for providing secure messages in groups of size two or more parties.
+	The Internet Engineering Task Force (IETF) defines the MLS as an SGM protocol which provides a set of security guarantees that participants in such a protocol can expect.
+	Implementations conforming to the definition of MLS are a subset of possible SGM implementations.
+	The security guarantees of MLS include:
+	
+	\begin{itemize}
+		\item End-to-end encryption \cite{padlipsky1978limitations}
+		\item Message confidentiality
+		\item Message integrity \cite{voydock1983security}
+		\item Message authentication \cite{jueneman1983message}
+		\item Membership authentication \cite{chaum1985showing}
+		\item Asynchronicity
+		\item Forward secrecy \cite{gunther1989identity}
+		\item Post-compromise security \cite{cohn2016post}
+		\item Scalability
+	\end{itemize}
+	
+	One of the novel features of SGM is the ability for participants to be added and removed from the secure communication channel.
+	In the simpler case when two parties use SM, additional participants cannot be added. Rather than ``removing'' a participant, the communication channel is simply closed when one party wishes to cease communication.
+	The SGM requirement of adding and removing participants to the secure communication channel poses interesting open challenges in the field of cryptography.
+	In the two party case, a general notion of Continuous Key Agreement has been used to provide robust security guarantees such as forward secrecy and post-compromise security.
+	For SGM, this general definition has been extended to Continuous \emph{Group} Key Agreement (CGKA) which is often used as lemma to derive proofs for some of MLS security guarantees.
+	
+	A naive construction of SGM exists by establishing a bidirectional SM channel between each pair of group members.
+	This construction, can provide the same security guarantees under some conditions to the entire group's communication.
+	However, we can exclude considering the robustness of the security guarantees this naive construction provides because it fails to meet the scalability requirement of MLS.
+	In general, the number of control messages to maintain CGKA does not increase linearly with group size.
+	Groups exceeding $2^8$ strain this construction in practice, while MLS targets efficiently handling groups up to roughly $2^{16}$ members.
+	There does not yet exists a cryptographic protocols for adding and removing participants while provably maintaining all the security guarantees of MLS that is simultaneously scalable.
+	
+	The construction of scalable MSL protocols is an area of open and active research.
+	There currently exist two proposed protocols which meet the definition of MLS with various levels of security proofs as well as efficiency with respect to group size.
+	The first is Asynchronous Ratcheting Tree (ART) \cite{cohn2018ends} described in 2018.
+	The second is TreeKEM \cite{bhargavan:hal-02425247} similarly conceived in 2018, but formally described in 2019.
+	The Internet Enginnering Task Force has put it's support behind the TreeKEM protocol along with many other corporate and government sponsors.
+	Consequently, research directed towards ART has stalled while developments for TreeKEM and it's derivatives have progressed rapidly.
+	During this survey, we will mostly ignore ART and instead focus on the TreeKEM avenue of research.
+	
+	\section*{Continuous Group Key-Agreement}
+	
+	A continuous group key-agreement scheme is defined by Alwen \cite{alwen2020security} as the following collection of algorithms:
+	
+	$$ \textbf{CGKA} = (init, create, add, rem, upd, proc)$$
+
+	\begin{itemize}
+	
+	\item $init : ID \to \Gamma$\\
+	Given an $ID$, outputs initial state $\gamma$.
+	
+	\item $create : \Gamma \times \overrightarrow{ID} \to (\Gamma, W)$\\
+	From state $\gamma$ and list of $ID$s, outputs new state $\gamma'$ and control message $w$.
+	
+	\item $add : \Gamma \times ID \to (\Gamma, W, T)$\\
+	From state $\gamma$ and $ID$, outputs new state $\gamma'$, control message $w$ and control message $t$.
+	
+	\item $rem : \Gamma \times ID \to (\Gamma, T)$\\
+	From state $\Gamma$ and $ID$, outputs new state $\gamma'$ and a control message $t$.
+	
+	\item $upd : \Gamma \to (\Gamma, T)$\\
+	From state $\gamma$, outputs new state $\gamma'$ and control message $t$.
+	
+	\item $proc : \Gamma \times T \to (\Gamma, I)$\\
+	From state $\gamma$ and control message $t$, outputs new state $\gamma'$ and update secret $I$.
+	\end{itemize}
+
+	The abstract collection of algorithms \textbf{CGKA} is used to maintain secure communications between a group of 2 or more participants.
+	Any group member can call any function from \textbf{CGKA}, producing new states $\gamma \in \Gamma$ and control messages $w \in W,\; t \in T$.
+	There are ``welcome'' control messages $w \in W$ for a new member entering the group.
+	There are also ``standard'' control messages $t \in T$ for existing members in the group.
+	The algorithm $proc$ consumes control messages $t \in T$ and produces a secret $i \in I$. 
+	Each call to $proc$ corresponds to a new epoch, and the secret $i$ is the cryptographic secret update(s) required for the client with $ID$ to maintain CGKA in the new epoch.
+	This general usage is how security guarantees in MLS are formulated.
+
+	
+	\section*{MLS Agent Environment}
+	
+	A communication group is a set of two or more agents using multiple devices to engage in secure communication.
+	The existence of an Authentication Service (AS) and a Delivery Service (DS) are required, though these do not need to be the same provider, nor do they need to be centralized.
+	To initialize a group, members to connect a service provider(s) which transmits the requisite credentials and values to for authentication of and encryption between group members.
+	Subsequently, group members exchange messages with a total ordering and maintain continuous group key agreement.
+	Additionally, a group can add or remove members, or reset their encryption continuous key agreement; each of which begins a new encryption ``epoch.''
+	Forward Secrecy and Post Compromise Secrecy are delineated in epochs, ensuring message ciphertexts sent before the current epoch are not recoverable if the current epoch's cryptographic material is compromised by one or more group members.
+	
+	\section*{Public Key Infrastructure}
+	
+	The aforementioned authentication service is required support use as a Public Key Infrastructure (PKI) entity, assumed to have a specific set of functionality to facilitate TreeKEM.
+	The AS acting as PKI should support:
+	
+	\begin{itemize}
+		
+		\item $get\_pk : ID \to (ID^\dagger, SK^\dagger, PK)$\\
+		Where anyone can request a ``fresh'' public key for a user with the supplied $id$, and receive back a public key $pk \in PK$ and the PKI records $(id, sk, pk)$.
+		
+		\item $get\_sk : ID \to \text{Maybe}(SK)$\\
+		A user with $ID$ can request from the PKI if there exist any keys associated with them.
+		After authenticating with PKI, if there exists one or more keys associated with $id$, the PKI provides the authenticated user with the recorded secret keys $sk \in SK$.
+
+	\end{itemize}
+
+	The existence and utilization of the PKI described above used in security proofs for TreeKEM.
+	In such proofs, any user's call to $get\_pk(id)$ will also supply the attacker with $(pk, id)$.
+	This is based on the assumption that the attacker can correlate network traffic and requests to group members, providing stronger and more realistic security guarantees.
+	
+	
+	\section*{TreeKEM}
+	
+	TreeKEM is a CGKA designed to meet the security guarantees and scalability requirements of MLS.
+	TreeKEM and it's derivatives are still works in progress and do not meet the definitions of MLS depending on the degree of scalability and strength of security required.
+	All described incarnations of TreeKEM are based on left balanced binary trees which are utilized as Ratchet Trees.
+	Similarly, all described versions of TreeKEM make black-box use of a psuedo-random number generator and a chosen-plaintext secure public key encryption scheme.
+	
+	Clients running the TreeKEM protocol maintain a local ratchet tree $\mathcal{T}$.
+	Each leaf node of $\mathcal{T}$ is associated with a unique group member.
+	Hence a group of $n$ members will have a depth of $\log n$.
+	Each control message that a client running the TreeKEM protocol receives is processed by $proc$ and causes an update to their local tree based on the output secret(s) $i \in I$.
+	Updates to $\mathcal{T}$ occur along the direct path, and co-path of the associated group member.
+	For instance in the case of adding or removing a member, the updates occur along the paths and co-paths from the root to the leaf node of the new or exiled member, respectively.
+	In the cause of a user initiating an epoch update, the updates to $\mathcal{T}$ occur along the path and co-path between the root node and the initiating user.
+	Each node along the updated path and co-path may require an additional set of control messages to be distributed to the group members.
+	Given the depth of the tree is $\log n$, and each group member must receive the control message to update their local $\mathcal{T}$, the total number of control messages to perform a group-wide update is $\mathcal{O}\left( n * \log n \right)$.
+	This is far preferable to the $\Omega\left( n ^ 2 \right)$ of the naive SGM construction and became the standard for SGM scalability; with a linear number of messages being a theoretically desirable, but potentially impossible goal.
+
+
+	\section*{First Corrections}
+	
+	Initially conceptualized in 2018 and then formally described in 2019, the original TreeKEM protocol's generalized usage of RTs for CGKA was well received by the MLS working group and backed by the IETF's efforts.
+	Shortly thereafter in early 2020, a proof that TreeKEM did not provide Forward Secrecy and only satisfies a weak notion of post-compromise security where stronger versions would be much more desirable was presented \cite{alwen2020security}.
+	Along with the the presentation of this shortcoming, the same authors proposed a modification to TreeKEM which would resolve TreeKEM's lack of forward secrecy and provide a strong version of post-compromise security.
+	The principle change was to replace the black-box usage of a CPA-secure PKE scheme with a CPA-secure \emph{update-able} PKE scheme.
+	The modified TreeKEM protocol requires the subtrees of the updated paths and co-path to
+	utilize the properties provided by an UPKE scheme and alter the secrets on each node.
+	This protocol change causes at least half of the nodes in $\mathcal{T}$ to be updated after each call to $proc$.
+	This more thorough alteration no longer allows an attacker to collect enough information to reveal the secret(s) stored at the root node of the tree.
+	Additionally, it does not increase the number of control messages required to be sent.
+
+
+	\section*{Suggested Compression}
+	
+	Near the end of the same year, TreeKEM was included in an assessment of post-quantum security \cite{katsumata2020scalable}.
+	The paper presented a major contribution for TreeKEM with respect to scaling.
+	Their analysis changed TreeKEM from a binary tree to an $m$--ary tree and applied compression techniques to the subsequently encrypted packets.
+	A comparison of four different TreeKEM protocol implementations with these changes applied then presented the the update message size with relation to group size.
+	The $m$--ary tree implementation provides a theoretical improvement of $\mathcal{O}(m)$ in packet size.
+	Their results comparing the four implementations in a variety of simulated group communication scenarios showed an empirical	improved cost for large groups by a factor between 1.8 and 4.2.
+	
+	
+	\section*{Tainted TreeKEM}	
+	
+	The most recent development of TreeKEM is a derivative protocol which offers stronger security guarantees and incomparable scalablity.
+	Previous versions of TreeKEM and the newly described Tainted TreeKEM \cite{klein2021keep} have different efficiency distributions for different types of group members.
+	Both are considered scalable by the MLS standard.
+	However, Tainted TreeKEM boasst to be more efficient for a ``natural usage'' distribution of CGKA operations.
+	Specifically, in the case that a few group members exclusively handle the addition and removal of other group members, acting as either official or unofficial group administrators, then the small administrative group will bear the most computational cost of updates and the group overall will have a lower, amortized cost.
+	However, as the distribution of membership management becomes more uniformly distributed, Tainted TreeKEM crosses a threshold where it no longer provides a lower amortized update cost.
+	
+	Tainted TreeKEM adds two important features.
+	The first is the concept of Confirm and Deliver.
+	The inclusion of Confirm and Deliver allows an active attacker, rather than only a selective attacker, to be described in security proofs.
+	The second important feature is the concept of tainting nodes on a client's local $\mathcal{T}$.
+	Previous versions of TreeKEM had a proceedure for ``blanking'' nodes when members left the group and then pruning $\mathcal{T}$.
+	Tainted TreeKEM replaces the concept of blanking with ``tainting.''
+	The authors describe how the process of blanking discards useful information, specifically that a client can track of which nodes' secret keys been created by parties who are not supposed to	know them.
+	The group will maintain which nodes are tainted by who.
+	Whenever the user with $id$ either performs an update or is removed from the group, all nodes tainted by $id$ must be updated.
+	Using the combination of these novel features, the authors present a more intuitive and stronger post-compromise security, i.e against an active attacker. 
+	
+	Furthermore, the same authors were able to formulate tighter security bounds from their proof methodology.
+	They present the best known CGKA security guarantees of the various TreeKEM versions against a standard model and random oracle models.
+	The results showed, generally, a linear loss in security for selectively adapting adversaries in both models.
+	With an actively adaptive adversary, previous version of TreeKEM have an exponential security loss and Tainted TreeKEM has a quadratic security loss.
+	
+	\section*{Open Questions}
+	
+	While some significant gains have been made for SGM in the last four years, there still remain multiple areas open for improvement.
+	Some of these improvements are straightforwardly defined, such as better security proofs with tighter bound or stronger adversaries.
+	Others require entirely new considerations.
+	
+	One very prominent area for improvement is protocol designs which permit an untrusted AS which provides the requisite PKI.
+	In order for groups to be initiated or new members to be added to a group, there is a required trust of the AS to honestly facilitate first contact.
+	A method in which new group members can detect the authenticity of their group inclusion would be of enormous security value.
+	This goal aims to remove most forms of man-in-th-middle attacks, which represent a very common real world scenario.
+	
+	Similarly, another area of improvement would be interoperability with an untrusted DS.
+	Ideally, the SGM protocol should not have any assumptions regarding the DS.
+	In practice, ART, TreeKEM, and Tainted TreeKEM all rely on a total ordering of messages order and to some extend rely on the DS to supply messages in nearly the correct order.
+	Tainted TreeKEM provides some resistance to an active attacker acting as a partially corrupted DS, but it does not provide general security guarantees for an arbitrary network. 
+
+	The protection of metadata generated by SGM is another desirable security guarantee that is not addressed by any known literature.
+	This is generally a difficult goal to achieve.
+	However, obfuscating or providing provable confidentiality of the topology of group members within the TreeKEM or Tainted TreeKEM's ratchet tree $\mathcal{T}$ would be another desirable goal.
+	
+	Lastly, deniability of sent messages to those outside of the group.
+	Deniability has garnered a lot of interest in cryptography, but it does not appear that any of the previous techniques have been applied or adapted for SGM.
+	The SM double ratchet based protocols offer varying degrees of deniability.
+	Perhaps just as CKA from SM was extended to CGKA for SGM, some deniability techniques from SM can be generalized or adapted for SGM.
+	
+	\vspace*{5em}
+	\section*{Conclusions}
+	
+	The concept of Secure Group Messaging is still an area of active research an will likely continue to receive attention over the next decade.
+	The applications of Secure Group Messaging are numerous and well motivated.
+	Most SGM instances in use today are composed of the naive SGM construction which greatly limit the scale and reliability of messaging between group members.
+	These limiting factors may present a real, but unarticulated an adoption barrier, preventing larger organizations from using secure messaging by default between their members.
+	The benefits of a provably secure and scalable implementation of message layer security would apply to small groups of associates all the way to large corporate or governmental institutions.
+	The iterative development of, and improvements to TreeKEM over the last four years show a promising trend and speed towards the realization of usable message layer security.
+	Additionally, the financial backing of prominent corporate interests and government agencies suggest that the development trajectory will continue for the near future.
+	
+	Many existing secure messaging platforms are eager to replace their adhoc, naively constructed secure group messaging with a proper and vetted protocol.
+	The ability for each of these platforms to rapidly propagate a new message layer security protocol once available makes the avenue for adoption nearly trivial, being immediately accessible to all the existing users of said platforms. 
+	I am hopeful that in the near future, continued funding and research will produce an accessible, provably secure, and scalable MLS implementation for general use.
+	Until then, we will have to be content with small collections of $\frac{n(n+1)}{2}$ pairwise channels constituting secure ``group'' messaging.
+	
+	
+	
+	%% Begin Bibliography
+	%\pagebreak
+	\onecolumn
+	\bibliography{Refs}
+	
+\end{document}
