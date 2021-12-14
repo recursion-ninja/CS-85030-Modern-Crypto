@@ -140,6 +140,7 @@
 	There are also ``standard'' control messages $t \in T$ for existing members in the group.
 	The algorithm $proc$ consumes control messages $t \in T$ and produces a secret $i \in I$. 
 	Each call to $proc$ corresponds to a new epoch, and the secret $i$ is the cryptographic secret update(s) required for the client with $ID$ to maintain CGKA in the new epoch.
+	Because the communication is defined in terms of epochs, CGKA should satisfy both Forward Secrecy and Post-compromise Security with respect to communication epochs.
 	This general usage is how security guarantees in MLS are formulated.
 
 	
@@ -265,7 +266,8 @@
 	The SM double ratchet based protocols offer varying degrees of deniability.
 	Perhaps just as CKA from SM was extended to CGKA for SGM, some deniability techniques from SM can be generalized or adapted for SGM.
 	
-	\vspace*{5em}
+	\vfill
+
 	\section*{Conclusions}
 	
 	The concept of Secure Group Messaging is still an area of active research an will likely continue to receive attention over the next decade.
